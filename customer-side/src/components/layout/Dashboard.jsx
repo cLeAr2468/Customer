@@ -36,23 +36,23 @@ export default function LaundryDashboard() {
   const rating = selectedStars.size;
 
   return (
-    <div className="min-h-screen bg-sky-100 p-6">
+    <div className="min-h-screen bg-sky-100 p-3 sm:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between bg-sky-600 text-white p-4 rounded-t-2xl">
-        <div className="flex items-center gap-3">
-          <div className="w-14 h-14 bg-sky-400 rounded-full flex items-center justify-center">
-            <User className="w-8 h-8" />
+      <div className="flex items-center justify-between bg-sky-600 text-white p-3 sm:p-4 rounded-t-2xl">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-10 h-10 sm:w-14 sm:h-14 bg-sky-400 rounded-full flex items-center justify-center">
+            <User className="w-6 h-6 sm:w-8 sm:h-8" />
           </div>
-          <h2 className="font-bold text-lg">GABIANA ANGIE</h2>
+          <h2 className="font-bold text-base sm:text-lg">GABIANA ANGIE</h2>
         </div>
-        <Button variant="secondary" className="bg-transparent border border-white hover:bg-white hover:text-sky-600">
+        <Button variant="secondary" className="text-sm sm:text-base px-2 py-1 sm:px-4 sm:py-2 bg-transparent border border-white hover:bg-white hover:text-sky-600">
           LOGOUT
         </Button>
       </div>
 
       {/* Content */}
       <Card className="rounded-b-2xl shadow-lg">
-        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6">
+        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 p-3 sm:p-6">
           {/* Laundry Status */}
           <div>
             <h3 className="font-bold flex items-center gap-2 mb-2">
@@ -62,11 +62,13 @@ export default function LaundryDashboard() {
               <Checkbox checked /> Ready to pick up
             </p>
 
-            <div className="mt-4 border rounded-md p-3 text-sm">
-              <p><strong>LAUNDRY ID:</strong> 25-0001</p>
-              <p><strong>BATCH:</strong> —</p>
-              <p><strong>AMOUNT:</strong> —</p>
-              <Button className="mt-3 bg-emerald-600 hover:bg-emerald-700 w-full">RECEIVED</Button>
+            <div className="mt-3 sm:mt-4 border rounded-md p-2 sm:p-3 text-xs sm:text-sm">
+              <p className="mb-1"><strong>LAUNDRY ID:</strong> 25-0001</p>
+              <p className="mb-1"><strong>BATCH:</strong> —</p>
+              <p className="mb-1"><strong>AMOUNT:</strong> —</p>
+              <Button className="mt-2 sm:mt-3 bg-emerald-600 hover:bg-emerald-700 w-full text-xs sm:text-sm h-8 sm:h-10">
+                RECEIVED
+              </Button>
             </div>
           </div>
 
@@ -89,11 +91,13 @@ export default function LaundryDashboard() {
               </div>
             </RadioGroup>
 
-            <div className="mt-4 border rounded-md p-3 text-center">
-              <p className="text-sm mb-2 flex items-center gap-2 justify-center">
-                <FileCheck className="w-4 h-4" /> Proof Uploaded
+            <div className="mt-3 sm:mt-4 border rounded-md p-2 sm:p-3 text-center">
+              <p className="text-xs sm:text-sm mb-2 flex items-center gap-1 sm:gap-2 justify-center">
+                <FileCheck className="w-3 h-3 sm:w-4 sm:h-4" /> Proof Uploaded
               </p>
-              <Button variant="outline">UPLOAD</Button>
+              <Button variant="outline" className="text-xs sm:text-sm h-8 sm:h-10 px-3 sm:px-4">
+                UPLOAD
+              </Button>
             </div>
           </div>
 
@@ -102,17 +106,17 @@ export default function LaundryDashboard() {
             <h3 className="font-bold flex items-center gap-2 mb-2">
               <Star className="w-5 h-5" /> TO RATE
             </h3>
-            <div className="flex gap-1 mb-2">
+            <div className="flex justify-center sm:justify-start gap-1 mb-2">
               {[1, 2, 3, 4, 5].map((starNumber) => (
                 <button
                   key={starNumber}
                   onClick={() => handleStarClick(starNumber)}
                   onMouseEnter={() => handleStarHover(starNumber)}
                   onMouseLeave={() => handleStarHover(0)}
-                  className="focus:outline-none"
+                  className="focus:outline-none p-1 sm:p-0"
                 >
                   <Star 
-                    className={`w-6 h-6 cursor-pointer transition-colors duration-200 ${
+                    className={`w-5 h-5 sm:w-6 sm:h-6 cursor-pointer transition-colors duration-200 ${
                       hoveredRating ? 
                         starNumber <= hoveredRating ? "text-yellow-500 fill-yellow-500" : "text-gray-300"
                         : selectedStars.has(starNumber) ? "text-yellow-500 fill-yellow-500" : "text-gray-300"
@@ -121,12 +125,15 @@ export default function LaundryDashboard() {
                 </button>
               ))}
             </div>
-            <p className="text-sm text-gray-600 mb-2">
+            <p className="text-xs sm:text-sm text-gray-600 mb-2 text-center sm:text-left">
               {rating ? `You rated ${rating} star${rating !== 1 ? 's' : ''}` : 'Click to rate'}
             </p>
-            <Textarea placeholder="Write your comment here..." className="mb-3" />
+            <Textarea 
+              placeholder="Write your comment here..." 
+              className="mb-3 text-xs sm:text-sm min-h-[80px] sm:min-h-[100px]"
+            />
             <Button 
-              className="bg-sky-600 hover:bg-sky-700 w-full"
+              className="bg-sky-600 hover:bg-sky-700 w-full h-9 sm:h-10 text-xs sm:text-sm"
               disabled={!rating}
             >
               SUBMIT
