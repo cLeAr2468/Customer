@@ -8,19 +8,19 @@ import Prices from './components/layout/prices';
 import Register from './components/layout/register';
 import Login from './components/layout/Login';
 import Dashboard from './components/layout/Dashboard';
+import Payment from './components/layout/payment';
+import Profile from './components/layout/Profile';
+import History from './components/layout/History';
 
 function AppContent() {
   const location = useLocation();
 
-  // Routes that should not display the header
-  const hideHeaderRoutes = [
-    '/register',
-    '/login',
-    '/dashboard',
-  ];
+  const exactHideRoutes = ['/register', '/login'];
+  const prefixHideRoutes = ['/dashboard'];
 
-  // Check if current path should hide header
-  const shouldHideHeader = hideHeaderRoutes.includes(location.pathname);
+  const shouldHideHeader =
+    exactHideRoutes.includes(location.pathname) ||
+    prefixHideRoutes.some((route) => location.pathname.startsWith(route));
 
   return (
     <div className="min-h-screen">
@@ -35,6 +35,9 @@ function AppContent() {
         <Route path="/register" element={<Register />} />
         {/* Protected Routes */}
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard/payment" element={<Payment />} />
+        <Route path="/dashboard/profile" element={<Profile />} />
+        <Route path="/dashboard/history" element={<History />} />
       </Routes>
     </div>
   );
