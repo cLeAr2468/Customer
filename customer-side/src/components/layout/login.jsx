@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useNavigate, Link, useParams } from "react-router-dom";
 import { fetchApi } from "@/lib/api";
+import { toast } from "sonner";
+import { AuthContext } from "@/context/AuthContext";
 
 const DEFAULT_SHOP = {
     shop_name: 'Wash Wise Intelligence',
@@ -12,12 +14,13 @@ const DEFAULT_SHOP = {
 };
 
 const Login = () => {
-    const [username, setUsername] = useState("admin");
-    const [password, setPassword] = useState("password");
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const navigate = useNavigate();
     const [selectedShop, setSelectedShop] = useState(null);
     const { slug } = useParams();
+    const { login } = useContext(AuthContext);
 
     useEffect(() => {
         const verifySlug = async () => {
@@ -56,16 +59,41 @@ const Login = () => {
 
     const currentShop = selectedShop || DEFAULT_SHOP;
 
-    const handleLogin = (e) => {
+    const handleLogin = async (e) => {
         e.preventDefault();
         setError("");
 
-        // Simple hardcoded authentication
-        if (username === "admin" && password === "password") {
-            // Navigate to dashboard on successful login
-            navigate("/dashboard");
-        } else {
-            setError("Invalid username or password. Use admin/password");
+        const shopIdToSend = localStorage.getItem("selectedShopId");
+
+        if (!shopIdToSend) {
+            setError("Invalid shop. Please go back to home page.");
+            return;
+        }
+        try {
+            const response = await fetchApi('/api/public/user/login', {
+                method: 'POST',
+                body: JSON.stringify({
+                    shop_id: shopIdToSend,
+                    emailOrUsername: username,
+                    password: password
+                })
+            });
+
+            if (!response.message || !response.token) {
+                throw new Error("Invalid response from server");
+            }
+
+            const token = response.token.replace('Bearer ', '');
+            login(response.user, token, response.apiKey);
+
+            setTimeout(() => {
+                toast.success("Login successfully!");
+                navigate("/dashboard");
+            }, 2000);
+
+        } catch (error) {
+            console.error('Login error:', error);
+            setError(error.message || "Invalid credentials. Please try again.");
         }
     };
 

@@ -3,6 +3,7 @@ import { Button } from '../ui/button.jsx';
 import { Menu, X } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom'; // Add this import
 import { fetchApi } from '@/lib/api.js';
+import { Card, CardContent } from '../ui/card.jsx';
 
 const DEFAULT_SHOP = {
   shop_name: 'Wash Wise Intelligence',
