@@ -1,23 +1,72 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useParams } from "react-router-dom";
+import { fetchApi } from "@/lib/api";
+import { toast } from 'sonner';
+
+const DEFAULT_SHOP = {
+    shop_name: 'Wash Wise Intelligence',
+    slug: 'wash-wise-intelligence',
+    shop_id: 'LMSS-00000'
+};
 
 const Register = ({ embedded = false }) => {
     const navigate = useNavigate();
     const [error, setError] = useState("");
     const [formData, setFormData] = useState({
-        admin_fName: "",
-        admin_mName: "",
-        admin_lName: "",
-        admin_address: "",
-        admin_username: "",
-        admin_contactNum: "",
-        email: "",
+        cus_fName: "",
+        cus_lName: "",
+        cus_mName: "",
+        cus_eMail: "",
+        cus_role: "CUSTOMER",
+        cus_phoneNum: "",
+        cus_address: "",
+        cus_username: "",
         password: "",
-        confirmPassword: ""
+        confirmPassword: "",
+        registeredBy: "CUSTOMER"
     });
+    const [selectedShop, setSelectedShop] = useState(null);
+    const { slug } = useParams();
+
+    useEffect(() => {
+        const verifySlug = async () => {
+            try {
+
+                if (!slug) {
+                    localStorage.removeItem('selectedShop');
+                    localStorage.removeItem('selectedShopId');
+                    setSelectedShop(DEFAULT_SHOP);
+                    return;
+                }
+
+                const response = await fetchApi(`/api/public/shop-slug/${slug}`);
+
+                if (!response.success) {
+                    localStorage.removeItem('selectedShop');
+                    localStorage.removeItem('selectedShopId');
+                    setSelectedShop(DEFAULT_SHOP);
+                    return;
+                }
+
+                localStorage.setItem('selectedShop', response.data.slug);
+                localStorage.setItem('selectedShopId', response.data.shop_id);
+                setSelectedShop(response.data);
+
+            } catch (err) {
+                console.error("Slug check failed:", err);
+                setSelectedShop(DEFAULT_SHOP);
+                localStorage.removeItem('selectedShop');
+                localStorage.removeItem('selectedShopId');
+            }
+        };
+
+        verifySlug();
+    }, [slug]);
+
+    const currentShop = selectedShop || DEFAULT_SHOP;
 
     const handleChange = (e) => {
         const { id, value } = e.target;
@@ -37,31 +86,43 @@ const Register = ({ embedded = false }) => {
             return;
         }
 
+        const shopIdToSend = localStorage.getItem("selectedShopId");
+
+        if (!shopIdToSend) {
+            setError("Invalid shop. Please go back to home page.");
+            return;
+        }
+
         try {
-            const response = await fetch('http://localhost:3000/api/auth/register-admin', {
+            const response = await fetchApi('/api/public/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    admin_fName: formData.admin_fName,
-                    admin_mName: formData.admin_mName,
-                    admin_lName: formData.admin_lName,
-                    admin_address: formData.admin_address,
-                    admin_username: formData.admin_username,
-                    admin_contactNum: formData.admin_contactNum,
-                    email: formData.email,
-                    password: formData.password
+                    shop_id: shopIdToSend,
+                    user_fName: formData.cus_fName,
+                    user_lName: formData.cus_lName,
+                    user_mName: formData.cus_mName,
+                    user_address: formData.cus_address,
+                    username: formData.cus_username || `${formData.cus_lName}.${formData.cus_fName}`.toLowerCase(),
+                    contactNum: formData.cus_phoneNum,
+                    email: formData.cus_eMail,
+                    role: formData.cus_role,
+                    status: "ACTIVE",
+                    password: formData.password,
+                    registered_by: "CUSTOMER"
                 })
             });
 
-            const data = await response.json();
-
-            if (response.ok) {
-                navigate("/dashboard");
-            } else {
-                setError(data.message || "Registration failed");
+            if (response.success === false) {
+                throw new Error(response.message || "Failed to register customer");
             }
+
+            setTimeout(() => {
+                navigate(currentShop ? `/${currentShop.slug}/login` : '/login');
+                toast.success("Customer registered successfully!");
+            }, 2000);
         } catch (error) {
             console.error("Registration error:", error);
             setError("Connection error. Please try again later.");
@@ -101,10 +162,10 @@ const Register = ({ embedded = false }) => {
                                     <div className="space-y-2 flex-1 w-full">
 
                                         <Input
-                                            id="admin_fName"
+                                            id="cus_fName"
                                             type="text"
                                             placeholder="First name"
-                                            value={formData.admin_fName}
+                                            value={formData.cus_fName}
                                             onChange={handleChange}
                                             className="w-full bg-gray-300 rounded-full border border-[#126280]/30 focus:outline-none focus:ring-2 focus:ring-[#126280]/50 text-sm md:text-base h-10 md:h-12"
                                             required
@@ -113,10 +174,10 @@ const Register = ({ embedded = false }) => {
                                     <div className="space-y-2 flex-1 w-full">
 
                                         <Input
-                                            id="admin_mName"
+                                            id="cus_mName"
                                             type="text"
                                             placeholder="Middle name"
-                                            value={formData.admin_mName}
+                                            value={formData.cus_mName}
                                             onChange={handleChange}
                                             className="w-full bg-gray-300 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base h-10 md:h-12"
                                         />
@@ -124,10 +185,10 @@ const Register = ({ embedded = false }) => {
                                     <div className="space-y-2 flex-1 w-full">
 
                                         <Input
-                                            id="admin_lName"
+                                            id="cus_lName"
                                             type="text"
                                             placeholder="Last name"
-                                            value={formData.admin_lName}
+                                            value={formData.cus_lName}
                                             onChange={handleChange}
                                             className="w-full bg-gray-300 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base h-10 md:h-12"
                                             required
@@ -139,10 +200,10 @@ const Register = ({ embedded = false }) => {
                                 <div className="mb-4">
 
                                     <Input
-                                        id="admin_address"
+                                        id="cus_address"
                                         type="text"
                                         placeholder="Address"
-                                        value={formData.admin_address}
+                                        value={formData.cus_address}
                                         onChange={handleChange}
                                         className="bg-gray-300 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base h-10 md:h-12"
                                     />
@@ -153,10 +214,10 @@ const Register = ({ embedded = false }) => {
                                     <div className="space-y-2 w-full">
 
                                         <Input
-                                            id="email"
+                                            id="cus_eMail"
                                             type="email"
                                             placeholder="Email address"
-                                            value={formData.email}
+                                            value={formData.cus_eMail}
                                             onChange={handleChange}
                                             className="bg-gray-300 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base h-10 md:h-12"
                                             required
@@ -165,13 +226,13 @@ const Register = ({ embedded = false }) => {
                                     <div className="space-y-2 w-full">
 
                                         <Input
-                                            id="admin_contactNum"
+                                            id="cus_phoneNum"
                                             type="tel"
                                             placeholder="09XXXXXXXXX"
                                             pattern="^09\d{9}$"
                                             inputMode="numeric"
                                             maxLength={11}
-                                            value={formData.admin_contactNum}
+                                            value={formData.cus_phoneNum}
                                             onChange={handleChange}
                                             className="bg-gray-300 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base h-10 md:h-12"
                                             onInput={e => {
@@ -192,10 +253,10 @@ const Register = ({ embedded = false }) => {
                                     <div className="space-y-2 w-full">
 
                                         <Input
-                                            id="admin_username"
+                                            id="cus_username"
                                             type="text"
                                             placeholder="Username"
-                                            value={formData.admin_username}
+                                            value={formData.cus_username}
                                             onChange={handleChange}
                                             className="bg-gray-300 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm md:text-base h-10 md:h-12"
                                             required
@@ -227,18 +288,18 @@ const Register = ({ embedded = false }) => {
                                     </div>
                                 </div>
 
-                                <Button 
+                                <Button
                                     type="submit"
                                     className="w-full mt-6 bg-[#126280] hover:bg-[#126280]/80 h-10 md:h-12 text-sm md:text-base text-white rounded-full font-semibold"
                                 >
                                     Register User
-                                </Button>         
+                                </Button>
                             </form>
-                            
+
                             {!embedded && (
                                 <p className="text-sm md:text-md text-center text-gray-600 mt-2 md:mt-4">
                                     Already have an account?{" "}
-                                    <Link to="/login" className="text-blue-600 font-semibold hover:underline text-lg">
+                                    <Link to={currentShop ? `/${currentShop.slug}/login` : '/login'} className="text-blue-600 font-semibold hover:underline text-lg">
                                         Login here
                                     </Link>
                                 </p>

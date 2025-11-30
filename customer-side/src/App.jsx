@@ -12,6 +12,7 @@ import Payment from './components/layout/payment';
 import Profile from './components/layout/Profile';
 import History from './components/layout/History';
 import PublicLayout from './components/layout/PublicLayout';
+import { Toaster as SonnerToaster } from "sonner";
 
 function AppContent() {
   const location = useLocation();
@@ -34,7 +35,7 @@ function AppContent() {
           <Route path="/:slug?/services" element={<Services />} />
           <Route path="/:slug?/prices" element={<Prices />} />
           <Route path="/:slug?/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/:slug?/register" element={<Register />} />
         </Route>
 
         {/* Protected Routes */}
@@ -50,6 +51,7 @@ function AppContent() {
 function App() {
   return (
     <Router>
+      <SonnerToaster position="top-right" richColors />
       <AppContent />
     </Router>
   );
