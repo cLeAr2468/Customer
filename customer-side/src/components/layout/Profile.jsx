@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Pencil, Check, X } from "lucide-react";
 import { fetchApi } from "@/lib/api";
 import { AuthContext } from "@/context/AuthContext";
+import { toast } from "sonner";
 
 export default function Profile() {
   const [details, setDetails] = useState([]);
@@ -71,10 +72,45 @@ export default function Profile() {
     setIsEditing(false);
   };
 
-  const saveChanges = () => {
-    setDetails(draftDetails.map((detail) => ({ ...detail })));
-    setIsEditing(false);
+  const saveChanges = async () => {
+    const success = await updateCustomer();
+
+    if (success) {
+      setDetails(draftDetails.map((detail) => ({ ...detail })));
+      setIsEditing(false);
+      toast.success("Profile updated successfully!")
+    } else {
+      toast.error("Failed to update profile. Please try again.");
+    }
   };
+
+  const updateCustomer = async () => {
+    try {
+      const payload = {
+        user_fName: draftDetails.find(d => d.key === "fullName")?.value.split(" ")[0] || "",
+        user_mName: draftDetails.find(d => d.key === "fullName")?.value.split(" ")[1] || "",
+        user_lName: draftDetails.find(d => d.key === "fullName")?.value.split(" ")[2] || "",
+        user_address: draftDetails.find(d => d.key === "address")?.value || "",
+        contactNum: draftDetails.find(d => d.key === "phone")?.value || "",
+        email: draftDetails.find(d => d.key === "email")?.value || "",
+      };
+
+      const res = await fetchApi(
+        `/api/customers/update-customer/${customerData.id}/${customerData.shop_id}/${customerData.role}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      return true;
+    } catch (error) {
+      console.error("Update failed:", error);
+      return false;
+    }
+  };
+
 
   const handleInputChange = (key, value) => {
     setDraftDetails((prev) =>
