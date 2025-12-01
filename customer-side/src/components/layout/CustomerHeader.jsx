@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { User, Settings, ChevronDown } from "lucide-react";
+import { AuthContext } from "@/context/AuthContext";
 
 export default function CustomerHeader({
   name = "Gabiana Angie",
@@ -15,6 +16,7 @@ export default function CustomerHeader({
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const { customerData } = useContext(AuthContext);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -31,6 +33,10 @@ export default function CustomerHeader({
     "logout": () => navigate("/login"),
   };
 
+  const fullName = customerData ?
+    `${customerData.user_lName || ''}, ${customerData.user_fName || ''}`.trim()
+    : 'Loading...';
+
   return (
     <Card className={`bg-gradient-to-r from-sky-600 via-sky-500 to-sky-400 text-white shadow-xl ${className}`}>
       <CardContent className="p-6 space-y-5">
@@ -41,7 +47,7 @@ export default function CustomerHeader({
             </div>
             <div>
               <p className="text-xs tracking-[0.3em] uppercase text-white/80">{welcomeText}</p>
-              <h1 className="text-2xl font-semibold">{name}</h1>
+              <h1 className="text-2xl font-semibold">{fullName}</h1>
               {subtitle && <p className="text-sm text-white/90">{subtitle}</p>}
             </div>
           </div>
