@@ -11,6 +11,8 @@ import Dashboard from './components/layout/Dashboard';
 import Payment from './components/layout/payment';
 import Profile from './components/layout/Profile';
 import History from './components/layout/History';
+import PublicLayout from './components/layout/PublicLayout';
+import { Toaster as SonnerToaster } from "sonner";
 
 function AppContent() {
   const location = useLocation();
@@ -27,12 +29,15 @@ function AppContent() {
       {!shouldHideHeader && <Header />}
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/services" element={<Services />} />
-        <Route path="/prices" element={<Prices />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route element={<PublicLayout />}>
+          <Route path="/:slug?" element={<Home />} />
+          <Route path="/:slug?/about" element={<About />} />
+          <Route path="/:slug?/services" element={<Services />} />
+          <Route path="/:slug?/prices" element={<Prices />} />
+          <Route path="/:slug?/login" element={<Login />} />
+          <Route path="/:slug?/register" element={<Register />} />
+        </Route>
+
         {/* Protected Routes */}
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/dashboard/payment" element={<Payment />} />
@@ -46,6 +51,7 @@ function AppContent() {
 function App() {
   return (
     <Router>
+      <SonnerToaster position="top-right" richColors />
       <AppContent />
     </Router>
   );
