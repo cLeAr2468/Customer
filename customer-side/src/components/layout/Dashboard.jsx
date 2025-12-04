@@ -14,7 +14,8 @@ export default function LaundryDashboard() {
   const [selectedStars, setSelectedStars] = useState(new Set());
   const [hoveredRating, setHoveredRating] = useState(0);
   const [monthTotal, setMonthTotal] = useState(0);
-    const { customerData } = useContext(AuthContext);
+  const [readyToPickUp, setReadyToPickUp] = useState(0);
+  const { customerData } = useContext(AuthContext);
 
   useEffect(() => {
     const fetchMonthTotal = async () => {
@@ -29,14 +30,28 @@ export default function LaundryDashboard() {
         console.error("Error fetching monthly total:", error);
       }
     }
+    const fetchReadyToPickUpOrders = async () => {
+      try {
+        if (!customerData) return;
+        const res = await fetchApi(`/api/customers/total-RTPU-count/${customerData.id}/${customerData.shop_id}`);
+
+        if (res.success) {
+          setReadyToPickUp(res.data)
+        }
+      } catch (error) {
+        console.error("Error fetching total Ready to pick-up count:", error);
+      }
+
+    }
     fetchMonthTotal();
+    fetchReadyToPickUpOrders();
   }, [customerData]);
 
 
   const quickStats = [
     {
       label: "Ready for pick-up",
-      value: "2 bags",
+      value: `${readyToPickUp.toLocaleString()} bags`,
       action: "See details",
       icon: ShoppingBasket,
       accent: "bg-sky-100 text-sky-700"
@@ -187,12 +202,12 @@ export default function LaundryDashboard() {
                 >
                   <Star
                     className={`h-7 w-7 sm:h-8 sm:w-8 ${hoveredRating
-                        ? starNumber <= hoveredRating
-                          ? "text-yellow-500 fill-yellow-500"
-                          : "text-slate-300"
-                        : selectedStars.has(starNumber)
-                          ? "text-yellow-500 fill-yellow-500"
-                          : "text-slate-300"
+                      ? starNumber <= hoveredRating
+                        ? "text-yellow-500 fill-yellow-500"
+                        : "text-slate-300"
+                      : selectedStars.has(starNumber)
+                        ? "text-yellow-500 fill-yellow-500"
+                        : "text-slate-300"
                       }`}
                   />
                 </button>
