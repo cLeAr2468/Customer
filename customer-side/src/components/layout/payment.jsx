@@ -39,6 +39,9 @@ export default function Payment() {
     loadPaymentMethods();
   }, [customerData]);
 
+  useEffect(() => {
+    setProofFile(null);
+  }, [paymentOption]);
 
   const handleStarClick = (starNumber) => {
     setSelectedStars(prev => {
@@ -64,9 +67,10 @@ export default function Payment() {
   const rating = selectedStars.size;
 
   const handleUploadClick = () => {
-    if (paymentOption !== "gcash") return;
+    if (paymentOption === "cash") return;
     fileInputRef.current?.click();
   };
+
 
   const handleFileChange = (event) => {
     const file = event.target.files?.[0];
@@ -156,14 +160,17 @@ export default function Payment() {
                   </div>
                 ))}
 
-              {/* PROOF UPLOAD (ENABLED ONLY FOR GCASH / PAYMAYA) */}
               <div className="mt-4 border rounded-md p-3 text-center space-y-2">
-                <p className="text-xs flex items-center justify-center gap-2">
-                  <FileCheck className="w-4 h-4" />
-                  {proofFile ? "File selected" : "Proof Uploaded"}
+                <p className="text-xs sm:text-sm flex items-center gap-1 sm:gap-2 justify-center">
+                  <FileCheck className="w-3 h-3 sm:w-4 sm:h-4" />
+
+                  {paymentOption === "cash"
+                    ? "No proof required"
+                    : proofFile
+                      ? "File selected"
+                      : "No proof uploaded"}
                 </p>
 
-                {/* FILE NAME */}
                 {proofFile && (
                   <p className="text-xs text-gray-500 truncate">{proofFile.name}</p>
                 )}
@@ -179,23 +186,23 @@ export default function Payment() {
                 <Button
                   type="button"
                   variant="outline"
+                  className="text-xs sm:text-sm h-8 sm:h-10 px-3 sm:px-4"
                   disabled={paymentOption === "cash"}
                   onClick={handleUploadClick}
-                  className="text-sm w-full"
                 >
                   {paymentOption === "cash"
-                    ? "Select GCash/PayMaya to upload"
+                    ? "Enable a digital method to upload"
                     : proofFile
-                      ? "Change Image"
-                      : "Upload Image"}
+                      ? "Change image"
+                      : "Upload image"}
                 </Button>
 
                 <Button
                   type="button"
-                  className="bg-sky-600 hover:bg-sky-700 text-white w-full"
+                  className="text-xs sm:text-sm h-8 sm:h-10 px-3 sm:px-4 bg-sky-600 text-white hover:bg-sky-700 disabled:bg-slate-300 disabled:text-slate-500"
                   disabled={paymentOption === "cash" || !proofFile}
                 >
-                  Submit Proof
+                  Submit proof
                 </Button>
               </div>
             </div>
