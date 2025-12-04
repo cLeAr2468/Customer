@@ -3,19 +3,55 @@ import { Button } from "@/components/ui/button"
 import { Star, ShoppingBasket, CreditCard, Truck, Droplets } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import CustomerHeader from "./CustomerHeader"
+import { fetchApi } from "@/lib/api"
+import { AuthContext } from "@/context/AuthContext"
 
 export default function LaundryDashboard() {
   const navigate = useNavigate();
   const [selectedStars, setSelectedStars] = useState(new Set());
   const [hoveredRating, setHoveredRating] = useState(0);
+  const [monthTotal, setMonthTotal] = useState(0);
+  const [readyToPickUp, setReadyToPickUp] = useState(0);
+  const { customerData } = useContext(AuthContext);
+
+  useEffect(() => {
+    const fetchMonthTotal = async () => {
+      try {
+        if (!customerData) return;
+        const res = await fetchApi(`/api/customers/total-amount/${customerData.id}/${customerData.shop_id}`);
+
+        if (res.success) {
+          setMonthTotal(res.data);
+        }
+      } catch (error) {
+        console.error("Error fetching monthly total:", error);
+      }
+    }
+    const fetchReadyToPickUpOrders = async () => {
+      try {
+        if (!customerData) return;
+        const res = await fetchApi(`/api/customers/total-RTPU-count/${customerData.id}/${customerData.shop_id}`);
+
+        if (res.success) {
+          setReadyToPickUp(res.data)
+        }
+      } catch (error) {
+        console.error("Error fetching total Ready to pick-up count:", error);
+      }
+
+    }
+    fetchMonthTotal();
+    fetchReadyToPickUpOrders();
+  }, [customerData]);
+
 
   const quickStats = [
     {
       label: "Ready for pick-up",
-      value: "2 bags",
+      value: `${readyToPickUp.toLocaleString()} bags`,
       action: "See details",
       icon: ShoppingBasket,
       accent: "bg-sky-100 text-sky-700"
@@ -37,7 +73,7 @@ export default function LaundryDashboard() {
     },
     {
       label: "Total this month",
-      value: "₱1,240",
+      value: `₱${monthTotal.toLocaleString()}`,
       action: "View history",
       icon: Droplets,
       accent: "bg-amber-100 text-amber-700",
@@ -90,31 +126,31 @@ export default function LaundryDashboard() {
           {quickStats.map((stat) => {
             const isInteractive = Boolean(stat.path);
             return (
-            <Card
-              key={stat.label}
-              className={`shadow-sm ${isInteractive ? "cursor-pointer transition hover:shadow-md hover:-translate-y-0.5" : ""}`}
-              onClick={() => isInteractive && navigate(stat.path)}
-            >
-              <CardContent className="p-5 space-y-3">
-                <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${stat.accent}`}>
-                  <stat.icon className="h-4 w-4" />
-                  {stat.label}
-                </div>
-                <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
-                <button
-                  type="button"
-                  className="text-sm font-medium text-sky-600 hover:text-sky-700"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    if (stat.path) {
-                      navigate(stat.path);
-                    }
-                  }}
-                >
-                  {stat.action}
-                </button>
-              </CardContent>
-            </Card>
+              <Card
+                key={stat.label}
+                className={`shadow-sm ${isInteractive ? "cursor-pointer transition hover:shadow-md hover:-translate-y-0.5" : ""}`}
+                onClick={() => isInteractive && navigate(stat.path)}
+              >
+                <CardContent className="p-5 space-y-3">
+                  <div className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${stat.accent}`}>
+                    <stat.icon className="h-4 w-4" />
+                    {stat.label}
+                  </div>
+                  <p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
+                  <button
+                    type="button"
+                    className="text-sm font-medium text-sky-600 hover:text-sky-700"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      if (stat.path) {
+                        navigate(stat.path);
+                      }
+                    }}
+                  >
+                    {stat.action}
+                  </button>
+                </CardContent>
+              </Card>
             );
           })}
         </div>
@@ -165,15 +201,14 @@ export default function LaundryDashboard() {
                   className="rounded-lg border border-slate-200 p-2 transition hover:border-sky-200"
                 >
                   <Star
-                    className={`h-7 w-7 sm:h-8 sm:w-8 ${
-                      hoveredRating
-                        ? starNumber <= hoveredRating
-                          ? "text-yellow-500 fill-yellow-500"
-                          : "text-slate-300"
-                        : selectedStars.has(starNumber)
+                    className={`h-7 w-7 sm:h-8 sm:w-8 ${hoveredRating
+                      ? starNumber <= hoveredRating
                         ? "text-yellow-500 fill-yellow-500"
                         : "text-slate-300"
-                    }`}
+                      : selectedStars.has(starNumber)
+                        ? "text-yellow-500 fill-yellow-500"
+                        : "text-slate-300"
+                      }`}
                   />
                 </button>
               ))}
