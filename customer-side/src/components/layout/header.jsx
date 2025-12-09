@@ -57,7 +57,7 @@ const Header = () => {
   const currentShop = selectedShop || DEFAULT_SHOP;
 
   return (
-     <header className="bg-[#126280] p-4 text-white fixed top-0 left-0 right-0 z-50">
+    <header className="bg-[#126280] p-4 text-white fixed top-0 left-0 right-0 z-50">
       <div className="flex justify-between items-center px-4 md:px-10">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
@@ -126,7 +126,7 @@ const Header = () => {
               <li><Link to={currentShop ? `/${currentShop.slug}/services` : '/services'} className="hover:underline">SERVICES</Link></li>
               <li><Link to={currentShop ? `/${currentShop.slug}/prices` : '/prices'} className="hover:underline">PRICES</Link></li>
             </ul>
-            <Link to="/login" className="w-full">
+            <Link to={currentShop ? `/${currentShop.slug}/login` : '/login'} className="w-full">
               <Button
                 variant="outline"
                 size="sm"

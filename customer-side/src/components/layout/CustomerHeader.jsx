@@ -30,7 +30,7 @@ export default function CustomerHeader({
 
   const menuActionByLabel = {
     "view profile": () => navigate("/dashboard/profile"),
-    "logout": () => navigate("/login"),
+    "logout": () => navigate("/"),
   };
 
   const fullName = customerData ?
