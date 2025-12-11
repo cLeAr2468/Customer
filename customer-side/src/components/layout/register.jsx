@@ -7,12 +7,7 @@ import { fetchApi } from "@/lib/api";
 import { toast } from 'sonner';
 import { formatPHNumber } from "@/lib/phoneFormatter";
 import OTPModal from "@/modals/OTPmodal";
-
-const DEFAULT_SHOP = {
-    shop_name: 'Wash Wise Intelligence',
-    slug: 'wash-wise-intelligence',
-    shop_id: 'LMSS-00000'
-};
+import { verifySlug, DEFAULT_SHOP } from '@/lib/shop';
 
 const Register = ({ embedded = false }) => {
     const navigate = useNavigate();
@@ -40,40 +35,12 @@ const Register = ({ embedded = false }) => {
     const [sendingOTP, setSendingOTP] = useState(false);
     const [otpResetKey, setOtpResetKey] = useState(0);
 
-
     useEffect(() => {
-        const verifySlug = async () => {
-            try {
-
-                if (!slug) {
-                    localStorage.removeItem('selectedShop');
-                    localStorage.removeItem('selectedShopId');
-                    setSelectedShop(DEFAULT_SHOP);
-                    return;
-                }
-
-                const response = await fetchApi(`/api/public/shop-slug/${slug}`);
-
-                if (!response.success) {
-                    localStorage.removeItem('selectedShop');
-                    localStorage.removeItem('selectedShopId');
-                    setSelectedShop(DEFAULT_SHOP);
-                    return;
-                }
-
-                localStorage.setItem('selectedShop', response.data.slug);
-                localStorage.setItem('selectedShopId', response.data.shop_id);
-                setSelectedShop(response.data);
-
-            } catch (err) {
-                console.error("Slug check failed:", err);
-                setSelectedShop(DEFAULT_SHOP);
-                localStorage.removeItem('selectedShop');
-                localStorage.removeItem('selectedShopId');
-            }
+        const load = async () => {
+            const shop = await verifySlug(slug);
+            setSelectedShop(shop);
         };
-
-        verifySlug();
+        load();
     }, [slug]);
 
     const currentShop = selectedShop || DEFAULT_SHOP;
