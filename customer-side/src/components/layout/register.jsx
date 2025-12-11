@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useNavigate, Link, useParams } from "react-router-dom";
 import { fetchApi } from "@/lib/api";
 import { toast } from 'sonner';
+import { formatPHNumber } from "@/lib/phoneFormatter";
+import OTPModal from "@/modals/OTPmodal";
 
 const DEFAULT_SHOP = {
     shop_name: 'Wash Wise Intelligence',
@@ -30,6 +32,14 @@ const Register = ({ embedded = false }) => {
     });
     const [selectedShop, setSelectedShop] = useState(null);
     const { slug } = useParams();
+
+    // OTP Modal state
+    const [showOTPModal, setShowOTPModal] = useState(false);
+    const [resendDisabled, setResendDisabled] = useState(false);
+    const [resendTimer, setResendTimer] = useState(0);
+    const [sendingOTP, setSendingOTP] = useState(false);
+    const [otpResetKey, setOtpResetKey] = useState(0);
+
 
     useEffect(() => {
         const verifySlug = async () => {
@@ -68,6 +78,20 @@ const Register = ({ embedded = false }) => {
 
     const currentShop = selectedShop || DEFAULT_SHOP;
 
+    useEffect(() => {
+        let interval;
+
+        if (resendDisabled && resendTimer > 0) {
+            interval = setInterval(() => {
+                setResendTimer(prev => prev - 1);
+            }, 1000);
+        } else if (resendDisabled && resendTimer === 0) {
+            setResendDisabled(false); // enable button when timer reaches 0
+        }
+
+        return () => clearInterval(interval);
+    }, [resendDisabled, resendTimer]);
+
     const handleChange = (e) => {
         const { id, value } = e.target;
         setFormData(prev => ({
@@ -80,52 +104,160 @@ const Register = ({ embedded = false }) => {
         e.preventDefault();
         setError("");
 
-        // Validate passwords match
         if (formData.password !== formData.confirmPassword) {
             setError("Passwords do not match");
             return;
         }
 
-        const shopIdToSend = localStorage.getItem("selectedShopId");
-
-        if (!shopIdToSend) {
-            setError("Invalid shop. Please go back to home page.");
+        const formattedNumber = formatPHNumber(formData.cus_phoneNum);
+        if (!formattedNumber) {
+            toast.error("Invalid Philippine phone number!");
             return;
         }
 
-        try {
-            const response = await fetchApi('/api/public/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    shop_id: shopIdToSend,
-                    user_fName: formData.cus_fName,
-                    user_lName: formData.cus_lName,
-                    user_mName: formData.cus_mName,
-                    user_address: formData.cus_address,
-                    username: formData.cus_username || `${formData.cus_lName}.${formData.cus_fName}`.toLowerCase(),
-                    contactNum: formData.cus_phoneNum,
-                    email: formData.cus_eMail,
-                    role: formData.cus_role,
-                    status: "ACTIVE",
-                    password: formData.password,
-                    registered_by: "CUSTOMER"
-                })
-            });
+        const sendOtpPromise = async () => {
+            setSendingOTP(true);
+            return fetchApi("/api/public/send-otp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: formData.cus_eMail })
+            }).then(response => {
 
-            if (response.success === false) {
-                throw new Error(response.message || "Failed to register customer");
+                if (!response.success) {
+
+                    throw new Error(response.message || "Server rejected the request.");
+                }
+                return response;
+            });
+        };
+
+        try {
+            await toast.promise(
+                sendOtpPromise(),
+                {
+                    loading: 'Sending verification code...',
+                    success: (response) => {
+
+                        setShowOTPModal(true);
+                        setResendDisabled(true);
+                        setResendTimer(30);
+                        return 'OTP sent successfully! Check your email.';
+                    },
+                    error: (err) => {
+
+                        console.error("API error:", err);
+                        return err.message || "Failed to send OTP. Please try again.";
+                    },
+                }
+            );
+
+
+        } catch (err) {
+            toast.error(err.message || "Something went wrong");
+            console.error("Unexpected error during submission:", err);
+        } finally {
+            setSendingOTP(false);
+        }
+    };
+
+    const handleOTPSubmit = async (otp) => {
+        const verifyOtpPromise = async () => {
+            return fetchApi("/api/public/verify-otp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: formData.cus_eMail, otp })
+            }).then((res) => {
+                if (!res.success) throw new Error("Invalid OTP");
+                return res;
+            });
+        };
+
+        try {
+            await toast.promise(
+                verifyOtpPromise,
+                {
+                    loading: "Verifying OTP...",
+                    success: "OTP verified!",
+                    error: (err) => err.message || "Invalid OTP",
+                }
+            );
+
+            const shopIdToSend = localStorage.getItem("selectedShopId");
+            if (!shopIdToSend) {
+                setError("Invalid shop. Please go back to home page.");
+                return;
             }
 
+            const formattedNumber = formatPHNumber(formData.cus_phoneNum);
+
+            const registerPromise = async () => {
+                return fetchApi("/api/public/register", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        shop_id: shopIdToSend,
+                        user_fName: formData.cus_fName,
+                        user_lName: formData.cus_lName,
+                        user_mName: formData.cus_mName,
+                        user_address: formData.cus_address,
+                        username:
+                            formData.cus_username ||
+                            `${formData.cus_lName}.${formData.cus_fName}`.toLowerCase(),
+                        contactNum: formattedNumber,
+                        email: formData.cus_eMail,
+                        role: formData.cus_role,
+                        status: "ACTIVE",
+                        password: formData.password,
+                        registered_by: "CUSTOMER",
+                    }),
+                }).then((res) => {
+                    if (!res.success)
+                        throw new Error(res.message || "Failed to register customer");
+                    return res;
+                });
+            };
+
+            await toast.promise(
+                registerPromise,
+                {
+                    loading: "Registering account...",
+                    success: "Customer registered successfully!",
+                    error: (err) => err.message || "Registration failed",
+                }
+            );
+
             setTimeout(() => {
-                navigate(currentShop ? `/${currentShop.slug}/login` : '/login');
-                toast.success("Customer registered successfully!");
-            }, 2000);
+                navigate(currentShop ? `/${currentShop.slug}/login` : "/login");
+            }, 1500);
+
         } catch (error) {
-            console.error("Registration error:", error);
-            setError("Connection error. Please try again later.");
+            console.error("API error:", error);
+            setOtpResetKey((prev) => prev + 1);
+            setShowOTPModal(false);
+            toast.error(error.message || "Something went wrong");
+        }
+    };
+
+
+    const handleResendOTP = async () => {
+        try {
+            setResendDisabled(true);
+            setResendTimer(30);
+            toast("Resending OTP...");
+
+            const response = await fetchApi("/api/public/send-otp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: formData.cus_eMail })
+            });
+
+            if (!response.success) throw new Error(response.message || "Failed to resend OTP");
+
+            toast.success("OTP resent successfully!");
+        } catch (err) {
+            console.error(err);
+            toast.error(err.message || "Failed to resend OTP");
+            setResendDisabled(false);
         }
     };
 
@@ -291,8 +423,9 @@ const Register = ({ embedded = false }) => {
                                 <Button
                                     type="submit"
                                     className="w-full mt-6 bg-[#126280] hover:bg-[#126280]/80 h-10 md:h-12 text-sm md:text-base text-white rounded-full font-semibold"
+                                    disabled={sendingOTP}
                                 >
-                                    Register User
+                                    {sendingOTP ? "Sending OTP..." : <>Register Customer</>}
                                 </Button>
                             </form>
 
@@ -308,6 +441,19 @@ const Register = ({ embedded = false }) => {
                     </div>
                 </div>
             </div>
+            {/* OTP Modal */}
+            <OTPModal
+                open={showOTPModal}
+                onClose={() => {
+                    setOtpResetKey(prev => prev + 1);
+                    setShowOTPModal(false);
+                }}
+                onSubmit={handleOTPSubmit}
+                onResend={handleResendOTP}
+                resendDisabled={resendDisabled}
+                resendTimer={resendTimer}
+                resetTrigger={otpResetKey}
+            />
         </div>
     );
 };
