@@ -5,12 +5,7 @@ import { Link, useParams } from 'react-router-dom';
 import { fetchApi } from '@/lib/api.js';
 import { Card, CardContent } from '../ui/card.jsx';
 import { AuthContext } from '@/context/AuthContext.jsx';
-
-const DEFAULT_SHOP = {
-  shop_name: 'Wash Wise Intelligence',
-  slug: 'wash-wise-intelligence',
-  shop_id: 'LMSS-00000'
-};
+import { verifySlug, DEFAULT_SHOP } from '@/lib/shop';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -21,40 +16,12 @@ const Header = () => {
   const { customerData, token } = useContext(AuthContext);
 
   useEffect(() => {
-    const verifySlug = async () => {
-      try {
-
-        if (!slug) {
-          localStorage.removeItem('selectedShop');
-          localStorage.removeItem('selectedShopId');
-          setSelectedShop(DEFAULT_SHOP);
-          return;
-        }
-
-        const response = await fetchApi(`/api/public/shop-slug/${slug}`);
-
-        if (!response.success) {
-          localStorage.removeItem('selectedShop');
-          localStorage.removeItem('selectedShopId');
-          setSelectedShop(DEFAULT_SHOP);
-          return;
-        }
-
-        localStorage.setItem('selectedShop', response.data.slug);
-        localStorage.setItem('selectedShopId', response.data.shop_id);
-        setSelectedShop(response.data);
-
-      } catch (err) {
-        console.error("Slug check failed:", err);
-        setSelectedShop(DEFAULT_SHOP);
-        localStorage.removeItem('selectedShop');
-        localStorage.removeItem('selectedShopId');
-      }
+    const load = async () => {
+      const shop = await verifySlug(slug);
+      setSelectedShop(shop);
     };
-
-    verifySlug();
+    load();
   }, [slug]);
-
 
   const currentShop = selectedShop || DEFAULT_SHOP;
 
@@ -155,14 +122,14 @@ const Header = () => {
               </Link>
             ) : (
               <Link to={currentShop ? `/${currentShop.slug}/login` : '/login'} className="w-full">
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full border-white hover:bg-white hover:text-slate-900"
-              >
-                LOGIN
-              </Button>
-            </Link>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full border-white hover:bg-white hover:text-slate-900"
+                >
+                  LOGIN
+                </Button>
+              </Link>
             )}
           </CardContent>
         </Card>

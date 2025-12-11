@@ -6,12 +6,7 @@ import { useNavigate, Link, useParams } from "react-router-dom";
 import { fetchApi } from "@/lib/api";
 import { toast } from "sonner";
 import { AuthContext } from "@/context/AuthContext";
-
-const DEFAULT_SHOP = {
-    shop_name: 'Wash Wise Intelligence',
-    slug: 'wash-wise-intelligence',
-    shop_id: 'LMSS-00000'
-};
+import { verifySlug, DEFAULT_SHOP } from '@/lib/shop';
 
 const Login = () => {
     const [username, setUsername] = useState("");
@@ -27,38 +22,11 @@ const Login = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        const verifySlug = async () => {
-            try {
-
-                if (!slug) {
-                    localStorage.removeItem('selectedShop');
-                    localStorage.removeItem('selectedShopId');
-                    setSelectedShop(DEFAULT_SHOP);
-                    return;
-                }
-
-                const response = await fetchApi(`/api/public/shop-slug/${slug}`);
-
-                if (!response.success) {
-                    localStorage.removeItem('selectedShop');
-                    localStorage.removeItem('selectedShopId');
-                    setSelectedShop(DEFAULT_SHOP);
-                    return;
-                }
-
-                localStorage.setItem('selectedShop', response.data.slug);
-                localStorage.setItem('selectedShopId', response.data.shop_id);
-                setSelectedShop(response.data);
-
-            } catch (err) {
-                console.error("Slug check failed:", err);
-                setSelectedShop(DEFAULT_SHOP);
-                localStorage.removeItem('selectedShop');
-                localStorage.removeItem('selectedShopId');
-            }
+        const load = async () => {
+            const shop = await verifySlug(slug);
+            setSelectedShop(shop);
         };
-
-        verifySlug();
+        load();
     }, [slug]);
 
     const currentShop = selectedShop || DEFAULT_SHOP;
@@ -238,7 +206,7 @@ const Login = () => {
                                     <Button
                                         type="submit"
                                         className="w-full mt-2 md:mt-4 bg-[#126280] hover:bg-[#126280]/80 h-10 md:h-12 text-sm md:text-base text-white"
-                                    disabled={isLoading}
+                                        disabled={isLoading}
                                     >
                                         {isLoading ? "Loading..." : <>Login</>}
                                     </Button>

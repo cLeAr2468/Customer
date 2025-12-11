@@ -5,12 +5,7 @@ import { Button } from "@/components/ui/button";
 import { User, Settings, ChevronDown } from "lucide-react";
 import { AuthContext } from "@/context/AuthContext";
 import { fetchApi } from "@/lib/api";
-
-const DEFAULT_SHOP = {
-  shop_name: 'Wash Wise Intelligence',
-  slug: 'wash-wise-intelligence',
-  shop_id: 'LMSS-00000'
-};
+import { verifySlug, DEFAULT_SHOP } from '@/lib/shop';
 
 export default function CustomerHeader({
   name = "Gabiana Angie",
@@ -28,39 +23,12 @@ export default function CustomerHeader({
   const { slug } = useParams();
 
   useEffect(() => {
-    const verifySlug = async () => {
-      try {
-
-        if (!slug) {
-          localStorage.removeItem('selectedShop');
-          localStorage.removeItem('selectedShopId');
-          setSelectedShop(DEFAULT_SHOP);
-          return;
-        }
-
-        const response = await fetchApi(`/api/public/shop-slug/${slug}`);
-
-        if (!response.success) {
-          localStorage.removeItem('selectedShop');
-          localStorage.removeItem('selectedShopId');
-          setSelectedShop(DEFAULT_SHOP);
-          return;
-        }
-
-        localStorage.setItem('selectedShop', response.data.slug);
-        localStorage.setItem('selectedShopId', response.data.shop_id);
-        setSelectedShop(response.data);
-
-      } catch (err) {
-        console.error("Slug check failed:", err);
-        setSelectedShop(DEFAULT_SHOP);
-        localStorage.removeItem('selectedShop');
-        localStorage.removeItem('selectedShopId');
-      }
-    };
-
-    verifySlug();
-  }, [slug]);
+  const load = async () => {
+    const shop = await verifySlug(slug);
+    setSelectedShop(shop);
+  };
+  load();
+}, [slug]);
 
 
   const currentShop = selectedShop || DEFAULT_SHOP;
