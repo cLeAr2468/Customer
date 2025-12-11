@@ -24,6 +24,7 @@ const Login = () => {
     const { slug } = useParams();
     const { login } = useContext(AuthContext);
     const [email, setEmail] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         const verifySlug = async () => {
@@ -72,33 +73,57 @@ const Login = () => {
             setError("Invalid shop. Please go back to home page.");
             return;
         }
-        try {
-            const response = await fetchApi('/api/public/user/login', {
+
+        const loginAndNavigatePromise = async () => {
+            setIsLoading(true);
+            return fetchApi('/api/public/user/login', {
                 method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     shop_id: shopIdToSend,
                     emailOrUsername: username,
                     password: password
                 })
-            });
+            })
+                .then(response => {
+                    if (response.success === false) {
+                        throw new Error(response.message || "Invalid credentials or network issue.");
+                    }
+                    if (!response.token || !response.user) {
+                        throw new Error("Invalid server response: Missing user data or token.");
+                    }
 
-            if (!response.message || !response.token) {
-                throw new Error("Invalid response from server");
+                    const token = response.token.replace('Bearer ', '');
+                    login(response.user, token, response.apiKey);
+
+                    return new Promise(resolve => {
+                        setTimeout(() => {
+                            resolve(response);
+                        }, 500);
+                    });
+                });
+        };
+
+        toast.promise(
+            loginAndNavigatePromise(),
+            {
+                loading: 'Logging in...',
+                success: (response) => {
+                    setIsLoading(false);
+                    navigate(currentShop ? `/${currentShop.slug}/dashboard` : '/dashboard');
+                    return "Login successful!";
+                },
+                error: (err) => {
+                    console.error('Login error:', err);
+                    setIsLoading(false);
+                    setError(err.message || "Login failed. Please check your credentials.");
+                    return err.message || "Login failed. Please check your credentials.";
+                },
             }
-
-            const token = response.token.replace('Bearer ', '');
-            login(response.user, token, response.apiKey);
-
-            setTimeout(() => {
-                toast.success("Login successfully!");
-                navigate(currentShop ? `/${currentShop.slug}/dashboard` : '/dashboard');
-            }, 2000);
-
-        } catch (error) {
-            console.error('Login error:', error);
-            setError(error.message || "Invalid credentials. Please try again.");
-        }
+        );
     };
+
+
 
     // Handle password reset submission
     const handleResetSubmit = async (e) => {
@@ -213,8 +238,9 @@ const Login = () => {
                                     <Button
                                         type="submit"
                                         className="w-full mt-2 md:mt-4 bg-[#126280] hover:bg-[#126280]/80 h-10 md:h-12 text-sm md:text-base text-white"
+                                    disabled={isLoading}
                                     >
-                                        Login
+                                        {isLoading ? "Loading..." : <>Login</>}
                                     </Button>
                                 </form>
 

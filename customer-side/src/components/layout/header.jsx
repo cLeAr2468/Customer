@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { Button } from '../ui/button.jsx';
-import { ArrowBigRightDash, Menu, X } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom'; // Add this import
+import { ArrowBigRight, Menu, X } from 'lucide-react';
+import { Link, useParams } from 'react-router-dom';
 import { fetchApi } from '@/lib/api.js';
 import { Card, CardContent } from '../ui/card.jsx';
 import { AuthContext } from '@/context/AuthContext.jsx';
@@ -105,7 +105,7 @@ const Header = () => {
                 size="sm"
                 className="text-white border-[#126280] bg-[#126280] hover:bg-white hover:text-slate-900 font-bold"
               >
-                Back to Dashboard <ArrowBigRightDash/>
+                Back to Dashboard <ArrowBigRight />
               </Button>
             </Link>
           ) : (
@@ -142,15 +142,28 @@ const Header = () => {
               <li><Link to={currentShop ? `/${currentShop.slug}/services` : '/services'} className="hover:underline">SERVICES</Link></li>
               <li><Link to={currentShop ? `/${currentShop.slug}/prices` : '/prices'} className="hover:underline">PRICES</Link></li>
             </ul>
-            <Link to={currentShop ? `/${currentShop.slug}/login` : '/login'} className="w-full">
+
+            {isLoggedIn ? (
+              <Link to={currentShop ? `/${currentShop.slug}/dashboard` : '/dashboard'}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full border-white hover:bg-white hover:text-slate-900"
+                >
+                  Back to Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <Link to={currentShop ? `/${currentShop.slug}/login` : '/login'} className="w-full">
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full text-white border-white hover:bg-white hover:text-slate-900"
+                className="w-full border-white hover:bg-white hover:text-slate-900"
               >
                 LOGIN
               </Button>
             </Link>
+            )}
           </CardContent>
         </Card>
       )}

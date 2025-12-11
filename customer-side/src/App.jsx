@@ -12,8 +12,8 @@ import Payment from './components/layout/payment';
 import Profile from './components/layout/Profile';
 import History from './components/layout/History';
 import PublicLayout from './components/layout/PublicLayout';
-import { Toaster as SonnerToaster } from "sonner";
 import ResetPassword from './components/layout/ResetPassword';
+import { Toaster } from './components/ui/sonner';
 
 function AppContent() {
   // const location = useLocation();
@@ -53,7 +53,7 @@ function AppContent() {
 function App() {
   return (
     <Router>
-      <SonnerToaster position="top-right" richColors />
+      <Toaster position="top-right" richColors/>
       <AppContent />
     </Router>
   );
