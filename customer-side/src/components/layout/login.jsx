@@ -91,7 +91,7 @@ const Login = () => {
 
             setTimeout(() => {
                 toast.success("Login successfully!");
-                navigate("/dashboard");
+                navigate(currentShop ? `/${currentShop.slug}/dashboard` : '/dashboard');
             }, 2000);
 
         } catch (error) {

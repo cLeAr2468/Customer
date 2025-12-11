@@ -16,18 +16,18 @@ import { Toaster as SonnerToaster } from "sonner";
 import ResetPassword from './components/layout/ResetPassword';
 
 function AppContent() {
-  const location = useLocation();
+  // const location = useLocation();
 
-  const exactHideRoutes = ['/register', '/login'];
-  const prefixHideRoutes = ['/dashboard'];
+  // const exactHideRoutes = ['/register', '/login'];
+  // const prefixHideRoutes = ['/dashboard'];
 
-  const shouldHideHeader =
-    exactHideRoutes.includes(location.pathname) ||
-    prefixHideRoutes.some((route) => location.pathname.startsWith(route));
+  // const shouldHideHeader =
+  //   exactHideRoutes.includes(location.pathname) ||
+  //   prefixHideRoutes.some((route) => location.pathname.startsWith(route));
 
   return (
     <div className="min-h-screen">
-      {!shouldHideHeader && <Header />}
+      {/* {!shouldHideHeader && <Header />} */}
       <Routes>
         {/* Public Routes */}
         <Route element={<PublicLayout />}>
@@ -41,7 +41,7 @@ function AppContent() {
         </Route>
 
         {/* Protected Routes */}
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/:slug?/dashboard" element={<Dashboard />} />
         <Route path="/dashboard/payment" element={<Payment />} />
         <Route path="/dashboard/profile" element={<Profile />} />
         <Route path="/dashboard/history" element={<History />} />

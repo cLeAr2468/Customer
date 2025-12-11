@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Button } from '../ui/button.jsx';
-import { Menu, X } from 'lucide-react';
+import { ArrowBigRightDash, Menu, X } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom'; // Add this import
 import { fetchApi } from '@/lib/api.js';
 import { Card, CardContent } from '../ui/card.jsx';
+import { AuthContext } from '@/context/AuthContext.jsx';
 
 const DEFAULT_SHOP = {
   shop_name: 'Wash Wise Intelligence',
@@ -17,6 +18,7 @@ const Header = () => {
   const [loadingShops, setLoadingShops] = useState(true);
   const [selectedShop, setSelectedShop] = useState(null);
   const { slug } = useParams();
+  const { customerData, token } = useContext(AuthContext);
 
   useEffect(() => {
     const verifySlug = async () => {
@@ -56,6 +58,8 @@ const Header = () => {
 
   const currentShop = selectedShop || DEFAULT_SHOP;
 
+  const isLoggedIn = (customerData && token)
+
   return (
     <header className="bg-[#126280] p-4 text-white fixed top-0 left-0 right-0 z-50">
       <div className="flex justify-between items-center px-4 md:px-10">
@@ -94,15 +98,27 @@ const Header = () => {
               </Link>
             </li>
           </ul>
-          <Link to={currentShop ? `/${currentShop.slug}/login` : '/login'}>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-white border-[#126280] bg-[#126280] hover:bg-white hover:text-slate-900 font-bold"
-            >
-              LOGIN
-            </Button>
-          </Link>
+          {isLoggedIn ? (
+            <Link to={currentShop ? `/${currentShop.slug}/dashboard` : '/dashboard'}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-white border-[#126280] bg-[#126280] hover:bg-white hover:text-slate-900 font-bold"
+              >
+                Back to Dashboard <ArrowBigRightDash/>
+              </Button>
+            </Link>
+          ) : (
+            <Link to={currentShop ? `/${currentShop.slug}/login` : '/login'}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-white border-[#126280] bg-[#126280] hover:bg-white hover:text-slate-900 font-bold"
+              >
+                LOGIN
+              </Button>
+            </Link>
+          )}
         </nav>
 
         <div className="md:hidden">
