@@ -1,7 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Star, ShoppingBasket, CreditCard, Truck, Droplets } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { Star, ShoppingBasket, CreditCard, Truck, Droplets, Clock, CheckCircle2, Package } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { useContext, useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
@@ -54,22 +53,32 @@ export default function LaundryDashboard() {
       value: `${readyToPickUp.toLocaleString()} bags`,
       action: "See details",
       icon: ShoppingBasket,
-      accent: "bg-sky-100 text-sky-700"
+      accent: "bg-sky-100 text-sky-700",
+      path: "/dashboard/ready-pickup"
     },
     {
-      label: "Payment status",
-      value: "Pay Online",
+      label: "Pending Payment",
+      value: "2 Bags",
       action: "Pay",
       icon: CreditCard,
       accent: "bg-emerald-100 text-emerald-700",
-      path: "/dashboard/payment"
+      path: "/dashboard/pending-payments"
     },
     {
-      label: "Next delivery",
-      value: "Today · 5:30 PM",
-      action: "Track rider",
+      label: "On Process",
+      value: "2 Bags",
+      action: "View Details",
       icon: Truck,
-      accent: "bg-indigo-100 text-indigo-700"
+      accent: "bg-indigo-100 text-indigo-700",
+      path: "/dashboard/on-process"
+    },
+     {
+      label: "Pending Laundry",
+      value: "2 Bags",
+      action: "View Details",
+      icon: Truck,
+      accent: "bg-indigo-100 text-indigo-700",
+      path: "/dashboard/pending-laundry"
     },
     {
       label: "Total this month",
@@ -81,18 +90,38 @@ export default function LaundryDashboard() {
     }
   ];
 
-  const activeOrders = [
+  const activityLogs = [
     {
-      id: "25-0001",
-      items: "Regular Wash + Fold",
-      status: "Drying",
-      eta: "Ready in 30 min"
+      id: "25-0015",
+      action: "Payment Received",
+      description: "GCash payment confirmed for Wash + Fold service",
+      timestamp: "2 hours ago",
+      icon: CheckCircle2,
+      iconColor: "text-green-600"
     },
     {
-      id: "25-0004",
-      items: "Premium Hand Wash",
-      status: "Quality check",
-      eta: "Today · 4:45 PM"
+      id: "25-0014",
+      action: "Order Completed",
+      description: "Premium Hand Wash ready for pickup",
+      timestamp: "5 hours ago",
+      icon: Package,
+      iconColor: "text-sky-600"
+    },
+    {
+      id: "25-0013",
+      action: "Order In Progress",
+      description: "Express Wash currently in drying stage",
+      timestamp: "1 day ago",
+      icon: Clock,
+      iconColor: "text-orange-600"
+    },
+    {
+      id: "25-0012",
+      action: "Payment Pending",
+      description: "Awaiting payment confirmation for Dry Cleaning",
+      timestamp: "2 days ago",
+      icon: CreditCard,
+      iconColor: "text-amber-600"
     }
   ];
 
@@ -122,7 +151,7 @@ export default function LaundryDashboard() {
       <div className="mx-auto max-w-6xl space-y-6">
         <CustomerHeader />
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-5">
           {quickStats.map((stat) => {
             const isInteractive = Boolean(stat.path);
             return (
@@ -159,24 +188,26 @@ export default function LaundryDashboard() {
           <CardContent className="p-6 space-y-5">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h2 className="text-lg font-semibold text-gray-900">Active orders</h2>
-                <p className="text-sm text-gray-500">Track progress in real-time</p>
+                <h2 className="text-lg font-semibold text-gray-900">Activity Logs</h2>
+                <p className="text-sm text-gray-500">Recent updates and transactions</p>
               </div>
-              <Input placeholder="Track ID e.g. 25-0001" className="bg-slate-50" />
             </div>
 
-            <div className="space-y-4">
-              {activeOrders.map((order) => (
-                <div key={order.id} className="rounded-2xl border border-slate-100 p-4 flex flex-col gap-3 sm:items-center sm:justify-between sm:flex-row bg-white">
-                  <div>
-                    <p className="text-xs uppercase tracking-wide text-gray-400">Laundry ID</p>
-                    <p className="text-lg font-semibold text-gray-900">{order.id}</p>
-                    <p className="text-sm text-gray-500">{order.items}</p>
+            <div className="space-y-3">
+              {activityLogs.map((log) => (
+                <div key={log.id} className="rounded-2xl border border-slate-100 p-4 flex gap-4 bg-white hover:border-slate-200 transition">
+                  <div className={`flex-shrink-0 ${log.iconColor}`}>
+                    <log.icon className="h-6 w-6" />
                   </div>
-                  <div className="text-left sm:text-right">
-                    <p className="text-sm font-semibold text-sky-600">{order.status}</p>
-                    <p className="text-xs text-gray-500">{order.eta}</p>
-                    <Button size="sm" className="mt-3 bg-sky-600 hover:bg-sky-700 w-full sm:w-auto">View timeline</Button>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-gray-900">{log.action}</p>
+                        <p className="text-sm text-gray-500 mt-1">{log.description}</p>
+                      </div>
+                      <span className="text-xs text-gray-400 whitespace-nowrap">{log.timestamp}</span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-2">ID: {log.id}</p>
                   </div>
                 </div>
               ))}
@@ -230,3 +261,5 @@ export default function LaundryDashboard() {
     </div>
   )
 }
+
+

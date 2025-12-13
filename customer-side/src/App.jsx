@@ -11,6 +11,10 @@ import Dashboard from './components/layout/Dashboard';
 import Payment from './components/layout/payment';
 import Profile from './components/layout/Profile';
 import History from './components/layout/History';
+import PendingPayments from './components/layout/PendingPayments';
+import OnProcess from './components/layout/OnProcess';
+import PendingLaundry from './components/layout/PendingLaundry';
+import ReadyPickup from './components/layout/ReadyPickup';
 import PublicLayout from './components/layout/PublicLayout';
 import ResetPassword from './components/layout/ResetPassword';
 import { Toaster } from './components/ui/sonner';
@@ -43,6 +47,10 @@ function AppContent() {
         {/* Protected Routes */}
         <Route path="/:slug?/dashboard" element={<Dashboard />} />
         <Route path="/dashboard/payment" element={<Payment />} />
+        <Route path="/dashboard/pending-payments" element={<PendingPayments />} />
+        <Route path="/dashboard/on-process" element={<OnProcess />} />
+        <Route path="/dashboard/pending-laundry" element={<PendingLaundry />} />
+        <Route path="/dashboard/ready-pickup" element={<ReadyPickup />} />
         <Route path="/dashboard/profile" element={<Profile />} />
         <Route path="/dashboard/history" element={<History />} />
       </Routes>
