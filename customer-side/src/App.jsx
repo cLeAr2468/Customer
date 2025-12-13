@@ -11,22 +11,27 @@ import Dashboard from './components/layout/Dashboard';
 import Payment from './components/layout/payment';
 import Profile from './components/layout/Profile';
 import History from './components/layout/History';
+import PendingPayments from './components/layout/PendingPayments';
+import OnProcess from './components/layout/OnProcess';
+import PendingLaundry from './components/layout/PendingLaundry';
+import ReadyPickup from './components/layout/ReadyPickup';
 import PublicLayout from './components/layout/PublicLayout';
-import { Toaster as SonnerToaster } from "sonner";
+import ResetPassword from './components/layout/ResetPassword';
+import { Toaster } from './components/ui/sonner';
 
 function AppContent() {
-  const location = useLocation();
+  // const location = useLocation();
 
-  const exactHideRoutes = ['/register', '/login'];
-  const prefixHideRoutes = ['/dashboard'];
+  // const exactHideRoutes = ['/register', '/login'];
+  // const prefixHideRoutes = ['/dashboard'];
 
-  const shouldHideHeader =
-    exactHideRoutes.includes(location.pathname) ||
-    prefixHideRoutes.some((route) => location.pathname.startsWith(route));
+  // const shouldHideHeader =
+  //   exactHideRoutes.includes(location.pathname) ||
+  //   prefixHideRoutes.some((route) => location.pathname.startsWith(route));
 
   return (
     <div className="min-h-screen">
-      {!shouldHideHeader && <Header />}
+      {/* {!shouldHideHeader && <Header />} */}
       <Routes>
         {/* Public Routes */}
         <Route element={<PublicLayout />}>
@@ -35,12 +40,17 @@ function AppContent() {
           <Route path="/:slug?/services" element={<Services />} />
           <Route path="/:slug?/prices" element={<Prices />} />
           <Route path="/:slug?/login" element={<Login />} />
+          <Route path="/:slug?/reset-password" element={<ResetPassword />} />
           <Route path="/:slug?/register" element={<Register />} />
         </Route>
 
         {/* Protected Routes */}
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/:slug?/dashboard" element={<Dashboard />} />
         <Route path="/dashboard/payment" element={<Payment />} />
+        <Route path="/dashboard/pending-payments" element={<PendingPayments />} />
+        <Route path="/dashboard/on-process" element={<OnProcess />} />
+        <Route path="/dashboard/pending-laundry" element={<PendingLaundry />} />
+        <Route path="/dashboard/ready-pickup" element={<ReadyPickup />} />
         <Route path="/dashboard/profile" element={<Profile />} />
         <Route path="/dashboard/history" element={<History />} />
       </Routes>
@@ -51,7 +61,7 @@ function AppContent() {
 function App() {
   return (
     <Router>
-      <SonnerToaster position="top-right" richColors />
+      <Toaster position="top-right" richColors/>
       <AppContent />
     </Router>
   );

@@ -1,9 +1,11 @@
 import { useContext, useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { User, Settings, ChevronDown } from "lucide-react";
 import { AuthContext } from "@/context/AuthContext";
+import { fetchApi } from "@/lib/api";
+import { verifySlug, DEFAULT_SHOP } from '@/lib/shop';
 
 export default function CustomerHeader({
   name = "Gabiana Angie",
@@ -16,7 +18,20 @@ export default function CustomerHeader({
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const { customerData } = useContext(AuthContext);
+  const { customerData, logout } = useContext(AuthContext);
+  const [selectedShop, setSelectedShop] = useState(null);
+  const { slug } = useParams();
+
+  useEffect(() => {
+  const load = async () => {
+    const shop = await verifySlug(slug);
+    setSelectedShop(shop);
+  };
+  load();
+}, [slug]);
+
+
+  const currentShop = selectedShop || DEFAULT_SHOP;
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -30,7 +45,7 @@ export default function CustomerHeader({
 
   const menuActionByLabel = {
     "view profile": () => navigate("/dashboard/profile"),
-    "logout": () => navigate("/login"),
+    "logout": () => { navigate(`/${currentShop?.slug}`), logout() },
   };
 
   const fullName = customerData ?

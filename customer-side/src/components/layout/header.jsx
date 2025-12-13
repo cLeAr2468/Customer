@@ -1,15 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Button } from '../ui/button.jsx';
-import { Menu, X } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom'; // Add this import
+import { ArrowBigRight, Menu, X } from 'lucide-react';
+import { Link, useParams } from 'react-router-dom';
 import { fetchApi } from '@/lib/api.js';
 import { Card, CardContent } from '../ui/card.jsx';
-
-const DEFAULT_SHOP = {
-  shop_name: 'Wash Wise Intelligence',
-  slug: 'wash-wise-intelligence',
-  shop_id: 'LMSS-00000'
-};
+import { AuthContext } from '@/context/AuthContext.jsx';
+import { verifySlug, DEFAULT_SHOP } from '@/lib/shop';
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,47 +13,22 @@ const Header = () => {
   const [loadingShops, setLoadingShops] = useState(true);
   const [selectedShop, setSelectedShop] = useState(null);
   const { slug } = useParams();
+  const { customerData, token } = useContext(AuthContext);
 
   useEffect(() => {
-    const verifySlug = async () => {
-      try {
-
-        if (!slug) {
-          localStorage.removeItem('selectedShop');
-          localStorage.removeItem('selectedShopId');
-          setSelectedShop(DEFAULT_SHOP);
-          return;
-        }
-
-        const response = await fetchApi(`/api/public/shop-slug/${slug}`);
-
-        if (!response.success) {
-          localStorage.removeItem('selectedShop');
-          localStorage.removeItem('selectedShopId');
-          setSelectedShop(DEFAULT_SHOP);
-          return;
-        }
-
-        localStorage.setItem('selectedShop', response.data.slug);
-        localStorage.setItem('selectedShopId', response.data.shop_id);
-        setSelectedShop(response.data);
-
-      } catch (err) {
-        console.error("Slug check failed:", err);
-        setSelectedShop(DEFAULT_SHOP);
-        localStorage.removeItem('selectedShop');
-        localStorage.removeItem('selectedShopId');
-      }
+    const load = async () => {
+      const shop = await verifySlug(slug);
+      setSelectedShop(shop);
     };
-
-    verifySlug();
+    load();
   }, [slug]);
-
 
   const currentShop = selectedShop || DEFAULT_SHOP;
 
+  const isLoggedIn = (customerData && token)
+
   return (
-     <header className="bg-[#126280] p-4 text-white fixed top-0 left-0 right-0 z-50">
+    <header className="bg-[#126280] p-4 text-white fixed top-0 left-0 right-0 z-50">
       <div className="flex justify-between items-center px-4 md:px-10">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
@@ -94,15 +65,27 @@ const Header = () => {
               </Link>
             </li>
           </ul>
-          <Link to={currentShop ? `/${currentShop.slug}/login` : '/login'}>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-white border-[#126280] bg-[#126280] hover:bg-white hover:text-slate-900 font-bold"
-            >
-              LOGIN
-            </Button>
-          </Link>
+          {isLoggedIn ? (
+            <Link to={currentShop ? `/${currentShop.slug}/dashboard` : '/dashboard'}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-white border-[#126280] bg-[#126280] hover:bg-white hover:text-slate-900 font-bold"
+              >
+                Back to Dashboard <ArrowBigRight />
+              </Button>
+            </Link>
+          ) : (
+            <Link to={currentShop ? `/${currentShop.slug}/login` : '/login'}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-white border-[#126280] bg-[#126280] hover:bg-white hover:text-slate-900 font-bold"
+              >
+                LOGIN
+              </Button>
+            </Link>
+          )}
         </nav>
 
         <div className="md:hidden">
@@ -126,15 +109,28 @@ const Header = () => {
               <li><Link to={currentShop ? `/${currentShop.slug}/services` : '/services'} className="hover:underline">SERVICES</Link></li>
               <li><Link to={currentShop ? `/${currentShop.slug}/prices` : '/prices'} className="hover:underline">PRICES</Link></li>
             </ul>
-            <Link to="/login" className="w-full">
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full text-white border-white hover:bg-white hover:text-slate-900"
-              >
-                LOGIN
-              </Button>
-            </Link>
+
+            {isLoggedIn ? (
+              <Link to={currentShop ? `/${currentShop.slug}/dashboard` : '/dashboard'}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full border-white hover:bg-white hover:text-slate-900"
+                >
+                  Back to Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <Link to={currentShop ? `/${currentShop.slug}/login` : '/login'} className="w-full">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full border-white hover:bg-white hover:text-slate-900"
+                >
+                  LOGIN
+                </Button>
+              </Link>
+            )}
           </CardContent>
         </Card>
       )}
